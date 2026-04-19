@@ -62,7 +62,6 @@ The first public release must show:
 - metadata filtering in retrieval
 - reranking enabled in the default path
 - LangChain in the default shipped path
-- optional thin LangGraph per-dimart flow
 - basic sanitization and moderation boundary
 - context pruning and summarization policy
 - LangSmith traces
@@ -173,20 +172,22 @@ Every turn should be traceable with explicit states:
 - `failed`
 - `cancelled`
 
-## Tribe Model
+## Tribe Model (v1)
 
-The project starts with a constrained tribe:
+The project starts with a constrained tribe. These constraints apply to v1 only:
 
-- exactly 5 dimarts in v1
+- exactly 5 dimarts
 - fixed roster
 - distinct personalities and roles
 - shared world state
 - individual memory and dialogue state
 - private belief and intention state
 - visible dimart-to-dimart communication
-- no breeding
-- no procedural population explosion
+- no breeding in v1
+- no procedural population explosion in v1
 - player intervention is possible, but the tribe should also evolve through autonomous ticks
+
+Phase 13 relaxes these constraints.
 
 Implementation recommendation:
 
@@ -259,7 +260,7 @@ Get one dimart talking through a real backend.
 - FastAPI backend
 - REST command surface
 - SSE for token streaming
-- WebSocket for real-time event delivery
+- WebSocket transport (single-channel, connection lifecycle, heartbeats)
 - Typer CLI client
 - local model integration
 - GGUF as default runtime
@@ -268,7 +269,7 @@ Get one dimart talking through a real backend.
 
 **Comparison Tracks**
 
-- GGUF vs GPTQ vs AWQ
+- runtime format: llama.cpp/GGUF defaults and measurement setup (quantization method comparisons deferred to Phase 10)
 - TTFT and throughput benchmarks
 - prompt composition variants
 - tokenizer deep-dive notebook
@@ -287,13 +288,16 @@ Expand from one dimart to the 5-dimart tribe and make the world feel alive even 
 
 - 5 fixed dimarts
 - tribe state
+- PostgreSQL bootstrap + Alembic migrations for tribe and event tables
 - `SocietyCoordinator`
 - simulation clock or tick loop
 - off-turn dimart activity
 - lightweight scheduler for autonomous turns
 - inter-dimart event model
-- WebSocket event stream for tribe activity
+- tribe/world event schemas and fan-out over the Phase 1 WebSocket transport
 - minimal resource, need, and relationship updates over time
+
+Autonomous ticks in this phase are rule- and heuristic-driven only; no LLM cognition, belief, or planning. Those land in Phase 3 (state) and Phase 8 (cognition).
 
 **Comparison Tracks**
 
@@ -314,20 +318,17 @@ Introduce persistent game state, hidden state, and memory storage cleanly.
 
 **Build**
 
-- PostgreSQL for authoritative world, tribe, and turn data
-- Alembic migrations
-- Qdrant as derived memory store
+- extend Postgres schema for authoritative world and turn data (tribe/event tables already exist from Phase 2)
+- Qdrant raw-memory persistence and write-path scaffolding (no retrieval yet — Phase 4)
 - relationship graph or equivalent social-state model
 - resource and world-state tables
 - event log with causal history
 - private belief, intention, mood, and suspicion/worldview state
 - explicit separation between public utterance history and private internal state
 - turn persistence
-- memory indexing after turn completion
 
 **Comparison Tracks**
 
-- synchronous vs deferred indexing
 - schema choices for event history and conversation persistence
 - snapshot vs event-log approaches for hidden-state reconstruction
 
@@ -345,12 +346,14 @@ Make dimarts remember correctly and measurably.
 
 - embeddings
 - chunking strategies
+- initial Qdrant indexing pipeline (consuming the Phase 3 raw-memory store)
+- synchronous vs deferred indexing policy
 - dense retrieval
 - BM25 retrieval
 - fusion
 - metadata filtering
 - reranking in the default path
-- retrieval metrics
+- offline spot-check retrieval metrics
 
 **Comparison Tracks**
 
@@ -383,7 +386,6 @@ Add the minimum safety and context controls required for a credible public AI pr
 - moderation boundary
 - sensitive-data handling
 - output filtering policy
-- sandboxing for any dimart actions
 - context pruning
 - summarization policy
 - prompt and memory token budgets
@@ -413,7 +415,7 @@ Make improvements measurable and regressions visible before the public release, 
 - DeepEval integration
 - RAGAS integration
 - evaluation datasets
-- retrieval metrics
+- retrieval metrics in the CI regression harness (LangSmith + RAGAS)
 - pairwise comparison reports
 - LLM-as-judge reports
 - response-quality regression suite
@@ -468,13 +470,15 @@ Expand from a thin orchestration flow to richer agentic patterns once the core s
 
 **Build**
 
-- thin per-dimart LangGraph flow if not already present
+- thin per-dimart LangGraph flow (introduced here; v1 shipped without it)
 - reflection
 - explicit checkpointing
 - structured output boundaries
 - memory-aware planning hooks
 - structured internal state for beliefs, goals, plans, and utterance strategy
 - explicit distinction between private intention and public expression
+- tool-calling flows for dimart actions
+- sandboxing for dimart actions
 - reasoning traces
 - HITL checkpoints
 - anomaly-detection and belief-revision hooks for later epistemic development
@@ -694,7 +698,7 @@ Always document:
 This roadmap is designed to eventually cover the interview topics below.
 
 1. **ML/NLP basics**
-   - primary phases: 1, 10, 11
+   - primary phases: 1, 11
    - terms: embeddings, tokenizers, fine-tuning, distillation, optimization, metrics
 2. **Retrieval**
    - primary phases: 4, 12
@@ -703,7 +707,7 @@ This roadmap is designed to eventually cover the interview topics below.
    - primary phases: 1, 2, 9
    - terms: WS, SSE, gRPC, MCP, A2A
 4. **Agent architecture**
-   - primary phases: 2, 3, 8, 13
+   - primary phases: 8, 13
    - terms: HITL, reflection, checkpointing, agentic memory, multi-agent orchestration, planning and execution, structured output
 5. **Safety**
    - primary phases: 5
@@ -754,13 +758,11 @@ If the roadmap grows and that order disappears, the repo becomes a mess.
 
 **Required**
 
-- [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview)
 - [Building Effective AI Agents](https://www.anthropic.com/engineering/building-effective-agents)
 
-**Why these first**
+**Why this first**
 
-- Use LangGraph docs to understand what the framework is actually good at before deciding how thin or thick your graph layer should be.
-- Use the Anthropic article as the grounding piece for why the repo should start with simple workflows, explicit boundaries, and only later earn more agentic complexity.
+- Use the Anthropic article as the grounding piece for why the repo should start with simple workflows, explicit boundaries, and only later earn more agentic complexity. LangGraph reading is deferred to Phase 8, where it is actually used.
 
 ### Phase 1: Streaming Backend and Local Runtime
 
@@ -885,6 +887,7 @@ If the roadmap grows and that order disappears, the repo becomes a mess.
 
 **Required**
 
+- [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview)
 - [Building Effective AI Agents](https://www.anthropic.com/engineering/building-effective-agents)
 - [LangChain structured output](https://docs.langchain.com/oss/python/langchain/structured-output)
 - [LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
@@ -892,6 +895,7 @@ If the roadmap grows and that order disappears, the repo becomes a mess.
 
 **Notes**
 
+- The LangGraph overview was deferred from Phase 0 to here — this is where the graph layer actually lands.
 - Come back to the Anthropic article here with more experience; it reads differently once you already have a working system.
 - Structured output and checkpointing are the practical base for private state, HITL, and explicit internal/public separation.
 
@@ -920,12 +924,15 @@ If the roadmap grows and that order disappears, the repo becomes a mess.
 **Required**
 
 - [vLLM quickstart](https://docs.vllm.ai/en/stable/getting_started/quickstart.html)
+
+**Optional**
+
 - [SGLang documentation](https://docs.sglang.ai/)
 
 **Notes**
 
 - vLLM is the must-read runtime because it maps directly to the phase’s required implementation.
-- SGLang is the useful contrast because it exposes many of the runtime concepts that tend to come up in interviews: speculative decoding, quantization, LoRA serving, structured outputs, and observability.
+- SGLang is the useful contrast (speculative decoding, quantization, LoRA serving, structured outputs, observability) — read only if you actually pick up the Optional SGLang extension in this phase.
 
 ### Phase 11: Fine-Tuning and ML/NLP Depth
 
@@ -942,6 +949,7 @@ If the roadmap grows and that order disappears, the repo becomes a mess.
 
 **Notes**
 
+- This extends the Phase 1 HF Tokenizers quicktour — skim only the sections you didn't touch earlier.
 - This is where the ML-depth reading really starts.
 - If you stay with LoRA/QLoRA and embedding/reranker tuning, PEFT plus SentenceTransformers is the right core.
 - Only add TRL if you truly start doing preference-style or policy-style training work.
