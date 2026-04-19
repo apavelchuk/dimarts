@@ -18,6 +18,7 @@ Build a local-LLM virtual creature game that works as:
 - a showcase repo for AI engineering interviews
 - a vehicle for comparing multiple AI techniques on the same problem
 - a sequence of technical articles that build on each other naturally
+- a long-running simulation where dimarts can develop private intentions, social dynamics, and emergent institutions over time
 
 The public story should always be:
 
@@ -130,20 +131,36 @@ without burying business logic inside framework glue.
 - **Qdrant** stores derived retrieval state
 - **LangSmith** stores traces, eval context, and debugging data
 
+### Simulation Doctrine
+
+The long-term product is not just a reactive chat system. It is a simulation.
+
+That means:
+
+- world rules and the simulation engine are authoritative
+- the model proposes beliefs, intentions, interpretations, plans, and speech
+- the world engine applies consequences and state transitions
+- dimarts have private state that is separate from public speech
+- dimarts may act without player input through autonomous ticks
+- players can influence the world, but the simulation should not depend on constant external control
+- the system should avoid hardcoded narrative beats and instead rely on rules, resources, incentives, and social dynamics
+- later phases may allow dimarts to revise their worldview and possibly form beliefs about hidden world constraints or the nature of the simulation itself
+
 ## Canonical Turn Lifecycle
 
-Every player or system turn should follow the same high-level flow:
+Every player-driven or autonomous system turn should follow the same high-level flow:
 
-1. accept command or event
-2. load authoritative state from Postgres
+1. advance simulation clock and select the next player or autonomous stimulus
+2. load authoritative world, tribe, relationship, and private dimart state from Postgres
 3. build turn context
 4. retrieve candidate memories
-5. rerank retrieved candidates
-6. assemble prompt
-7. generate and stream output
-8. persist turn result
-9. update derived memory index
-10. emit tribe and world events
+5. update hidden belief, goal, and social state
+6. rerank retrieved candidates and assemble prompt context
+7. decide action plan and public utterance strategy
+8. generate and stream public output when needed
+9. apply world consequences through the simulation engine
+10. persist public and private state deltas
+11. update derived memory index and emit tribe and world events
 
 Every turn should be traceable with explicit states:
 
@@ -165,9 +182,11 @@ The project starts with a constrained tribe:
 - distinct personalities and roles
 - shared world state
 - individual memory and dialogue state
+- private belief and intention state
 - visible dimart-to-dimart communication
 - no breeding
 - no procedural population explosion
+- player intervention is possible, but the tribe should also evolve through autonomous ticks
 
 Implementation recommendation:
 
@@ -258,41 +277,51 @@ Get one dimart talking through a real backend.
 
 - Article 1: “Streaming a local LLM through FastAPI, SSE, and a CLI client”
 
-### Phase 2: Dimart Tribe and Social Event Layer
+### Phase 2: Dimart Tribe, Simulation Clock, and Social Event Layer
 
 **Goal**
 
-Expand from one dimart to the 5-dimart tribe without introducing full civilization complexity.
+Expand from one dimart to the 5-dimart tribe and make the world feel alive even when the player is not driving every move.
 
 **Build**
 
 - 5 fixed dimarts
 - tribe state
 - `SocietyCoordinator`
+- simulation clock or tick loop
+- off-turn dimart activity
+- lightweight scheduler for autonomous turns
 - inter-dimart event model
 - WebSocket event stream for tribe activity
+- minimal resource, need, and relationship updates over time
 
 **Comparison Tracks**
 
 - event schemas
 - push vs pull event delivery patterns
 - protocol notes for WS/SSE split
+- player-driven vs autonomous event cadence
 
 **Article**
 
-- Article 2: “From one dimart to a 5-dimart tribe without rewriting the architecture”
+- Article 2: “From one dimart to a 5-dimart tribe with a simulation clock”
 
-### Phase 3: Structured Persistence and Memory Indexing
+### Phase 3: World Model, Persistence, and Hidden State
 
 **Goal**
 
-Introduce persistent game state and memory storage cleanly.
+Introduce persistent game state, hidden state, and memory storage cleanly.
 
 **Build**
 
 - PostgreSQL for authoritative world, tribe, and turn data
 - Alembic migrations
 - Qdrant as derived memory store
+- relationship graph or equivalent social-state model
+- resource and world-state tables
+- event log with causal history
+- private belief, intention, mood, and suspicion/worldview state
+- explicit separation between public utterance history and private internal state
 - turn persistence
 - memory indexing after turn completion
 
@@ -300,10 +329,11 @@ Introduce persistent game state and memory storage cleanly.
 
 - synchronous vs deferred indexing
 - schema choices for event history and conversation persistence
+- snapshot vs event-log approaches for hidden-state reconstruction
 
 **Article**
 
-- Article 3: “Postgres for truth, Qdrant for memory: drawing the line correctly”
+- Article 3: “World truth, hidden state, and memory: drawing the line correctly”
 
 ### Phase 4: Retrieval Baseline
 
@@ -375,7 +405,7 @@ Add the minimum safety and context controls required for a credible public AI pr
 
 **Goal**
 
-Make improvements measurable and regressions visible before the public release.
+Make improvements measurable and regressions visible before the public release, including the simulation aspects.
 
 **Build**
 
@@ -390,16 +420,22 @@ Make improvements measurable and regressions visible before the public release.
 - structured logs
 - `/metrics` endpoint
 - simple monitoring dashboards or SLO-style latency documentation
+- long-horizon consistency checks
+- relationship and social-coherence checks
+- causal-consistency checks over event chains
+- seeded simulation runs and replay-friendly debug traces
+- autonomy-rate measurements for player-idle periods
 
 **Comparison Tracks**
 
 - baseline vs reranked pipeline
 - baseline vs fine-tuned retrieval later
 - prompt version A/B tests
+- seeded vs unseeded simulation behavior analysis
 
 **Article**
 
-- Article 6: “How I evaluate, trace, and monitor an AI system instead of just eyeballing it”
+- Article 6: “How I evaluate, trace, and monitor an evolving AI simulation instead of just eyeballing it”
 
 ### Public MVP Release
 
@@ -424,7 +460,7 @@ Reduce runtime cost without damaging product quality.
 
 - Article 7: “Reducing cost without wrecking quality”
 
-### Phase 8: Agent Architecture
+### Phase 8: Simulation Cognition and Agent Architecture
 
 **Goal**
 
@@ -437,8 +473,11 @@ Expand from a thin orchestration flow to richer agentic patterns once the core s
 - explicit checkpointing
 - structured output boundaries
 - memory-aware planning hooks
+- structured internal state for beliefs, goals, plans, and utterance strategy
+- explicit distinction between private intention and public expression
 - reasoning traces
 - HITL checkpoints
+- anomaly-detection and belief-revision hooks for later epistemic development
 
 **Comparison Tracks**
 
@@ -446,10 +485,11 @@ Expand from a thin orchestration flow to richer agentic patterns once the core s
 - reflection on vs off
 - HITL on vs off
 - tool-calling flows
+- private/public state separation strategies
 
 **Article**
 
-- Article 8: “Where LangGraph and agent patterns actually help”
+- Article 8: “Where agent cognition, reflection, and private state actually help”
 
 ### Phase 9: Protocols and Framework Comparisons
 
@@ -554,11 +594,11 @@ Preserve the retrieval-breadth and multimodal work from the original roadmap wit
 
 - Article 12: “Advanced retrieval beyond the baseline hybrid pipeline”
 
-### Phase 13: Richer Society and Multi-Agent Expansion
+### Phase 13: Open-Ended Society Simulation and Multi-Agent Expansion
 
 **Goal**
 
-Extend the 5-dimart tribe into a deeper social system after the fundamentals are stable.
+Extend the 5-dimart tribe into a genuinely evolving social simulation after the fundamentals are stable.
 
 **Build**
 
@@ -567,15 +607,21 @@ Extend the 5-dimart tribe into a deeper social system after the fundamentals are
 - optional supervisor graphs
 - more autonomous social loops
 - larger society simulation
+- faction formation, splitting, and merging
+- breeding or reproduction systems
+- cooperation, betrayal, conflict, and death as simulation outcomes
+- long-running evolution with optional player intervention rather than constant player control
+- epistemic-development track where dimarts may revise beliefs about hidden world constraints or the nature of their reality
 
 **Comparison Tracks**
 
 - thin coordinator vs supervisor graph
 - explicit turn-taking vs emergent scheduling
+- fixed population vs evolving population dynamics
 
 **Article**
 
-- Article 13: “Scaling the tribe into a real society”
+- Article 13: “Scaling the tribe into an open-ended society simulation”
 
 ## Test Strategy Across All Phases
 
@@ -586,6 +632,8 @@ Testing is not a late phase. Every phase should extend the same test pyramid:
   - ranking math
   - context logic
   - event shaping
+  - hidden-state transitions
+  - simulation-rule application
 - **integration tests**
   - FastAPI routes
   - Postgres
@@ -598,9 +646,12 @@ Testing is not a late phase. Every phase should extend the same test pyramid:
   - ranking quality
   - response quality
   - benchmark comparisons
+  - long-horizon social consistency
+  - autonomy behavior in player-idle windows
 - **limited end-to-end**
   - one player-to-dimart happy path
   - one tribe-event path
+  - one autonomous-tick evolution path
 
 Failure modes that should be covered explicitly:
 
@@ -613,6 +664,8 @@ Failure modes that should be covered explicitly:
 - Postgres failure after stream start
 - malformed memory data
 - context overflow
+- contradictory private/public state updates
+- runaway autonomous loops
 
 ## Performance Strategy Across All Phases
 
@@ -623,6 +676,7 @@ Always track:
 - retrieval latency
 - reranking latency
 - prompt assembly latency
+- simulation tick latency
 - time to first token
 - total turn latency
 - token throughput
@@ -649,7 +703,7 @@ This roadmap is designed to eventually cover the interview topics below.
    - primary phases: 1, 2, 9
    - terms: WS, SSE, gRPC, MCP, A2A
 4. **Agent architecture**
-   - primary phases: 2, 8, 13
+   - primary phases: 2, 3, 8, 13
    - terms: HITL, reflection, checkpointing, agentic memory, multi-agent orchestration, planning and execution, structured output
 5. **Safety**
    - primary phases: 5
@@ -670,7 +724,7 @@ This roadmap is designed to eventually cover the interview topics below.
    - primary phases: 6
    - terms: DeepEval, LLM-as-judge, pairwise comparison, RAGAS, CI-style regression
 11. **Observability**
-   - primary phases: 6, 10
+   - primary phases: 6, 10, 13
    - terms: tracing, monitoring, eval visibility, production debugging
 
 ## Final Rule
