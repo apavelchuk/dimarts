@@ -739,3 +739,246 @@ The project should always remain understandable in this order:
 
 If the roadmap grows but that order stays clear, the repo scales cleanly.
 If the roadmap grows and that order disappears, the repo becomes a mess.
+
+## Reading Materials by Phase
+
+### Reading Principles
+
+- Keep backend transport reading shallow and implementation-oriented.
+- Go deeper on AI-heavy topics: retrieval, ranking, context management, safety, evaluation, inference runtimes, and fine-tuning.
+- Prefer official docs and primary papers over generic blog posts.
+- Do not pre-read later-phase material just because it looks interesting. Read by phase.
+- For comparison tracks, read the default-path material first, then the paper or alternative framework docs only when the comparison begins.
+
+### Phase 0: Foundations, Repo Boundaries, and Default Flow
+
+**Required**
+
+- [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview)
+- [Building Effective AI Agents](https://www.anthropic.com/engineering/building-effective-agents)
+
+**Why these first**
+
+- Use LangGraph docs to understand what the framework is actually good at before deciding how thin or thick your graph layer should be.
+- Use the Anthropic article as the grounding piece for why the repo should start with simple workflows, explicit boundaries, and only later earn more agentic complexity.
+
+### Phase 1: Streaming Backend and Local Runtime
+
+**Required**
+
+- [FastAPI WebSockets](https://fastapi.tiangolo.com/advanced/websockets/)
+- [FastAPI custom responses and `StreamingResponse`](https://fastapi.tiangolo.com/advanced/custom-response/)
+- [LangChain streaming](https://docs.langchain.com/oss/python/langchain/streaming)
+- [LangGraph streaming](https://docs.langchain.com/oss/python/langgraph/streaming)
+- [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)
+
+**AI-grounding add-on**
+
+- [Hugging Face Tokenizers quicktour](https://huggingface.co/docs/tokenizers/en/index)
+
+**Notes**
+
+- The backend material here is intentionally short.
+- The tokenizer docs belong here because Phase 1 already includes local-model/runtime work and your tokenizer notebook comparison track.
+
+### Phase 2: Dimart Tribe, Simulation Clock, and Social Event Layer
+
+**Required**
+
+- [SQLAlchemy asyncio](https://docs.sqlalchemy.org/20/orm/extensions/asyncio.html)
+- [Alembic tutorial](https://alembic.sqlalchemy.org/tutorial.html)
+
+**Optional but useful later in the phase**
+
+- [Mesa documentation](https://mesa.readthedocs.io/en/latest/)
+
+**Notes**
+
+- Phase 2 is mostly application design, scheduler design, and simulation rules.
+- Mesa is not required for implementation, but it is a useful agent-based-simulation reference once the tribe starts acting autonomously.
+
+### Phase 3: World Model, Persistence, and Hidden State
+
+**Required**
+
+- [Qdrant Python client docs](https://python-client.qdrant.tech/)
+- [Qdrant quickstart](https://python-client.qdrant.tech/quickstart.html)
+- [LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
+- [LangGraph checkpointer reference](https://reference.langchain.com/python/langgraph/checkpoints/)
+
+**Notes**
+
+- Read Qdrant for concrete storage/index APIs.
+- Read LangGraph persistence/checkpoint docs for the later hidden-state and checkpointing work, even if LangGraph stays optional in the shipped v1 path.
+
+### Phase 4: Retrieval Baseline
+
+**Required**
+
+- [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://huggingface.co/papers/2005.11401)
+- [SentenceTransformers documentation](https://www.sbert.net/index.html)
+- [Retrieve and Re-Rank pipeline guide](https://www.sbert.net/examples/applications/retrieve_rerank/README.html)
+- [Qdrant hybrid search article](https://qdrant.tech/articles/hybrid-search/)
+
+**Read when each comparison starts**
+
+- [Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE)](https://huggingface.co/papers/2212.10496)
+
+**Why this phase gets extra reading**
+
+- This is one of the most interview-dense topics and one of the most valuable showcase areas in the repo.
+- The paper gives you the conceptual base for RAG.
+- SentenceTransformers gives you the practical base for embeddings, retrievers, cross-encoders, and rerankers.
+
+### Phase 5: Safety and Context Baseline
+
+**Required**
+
+- [OWASP Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- [Microsoft Presidio getting started](https://microsoft.github.io/presidio/getting_started/)
+- [Presidio text de-identification](https://microsoft.github.io/presidio/getting_started/getting_started_text/)
+- [NeMo Guardrails overview](https://docs.nvidia.com/nemo/guardrails/latest/about/overview.html)
+
+**Context-management add-ons**
+
+- [LangChain middleware overview](https://docs.langchain.com/oss/python/langchain/middleware/overview)
+
+**Notes**
+
+- This phase is not just about security theater.
+- Read OWASP first for threat categories, then Presidio for concrete PII handling, then NeMo Guardrails for programmable guardrail patterns.
+
+### Phase 6: Evaluation, Tracing, and Monitoring
+
+**Required**
+
+- [LangSmith docs](https://docs.smith.langchain.com/)
+- [Ragas docs](https://docs.ragas.io/)
+- [DeepEval GitHub README](https://github.com/confident-ai/deepeval)
+
+**Optional when you start scaling comparisons**
+
+- [Ragas experimentation concepts](https://docs.ragas.io/en/stable/concepts/experimentation/)
+
+**Notes**
+
+- This phase is where you move from “it feels better” to “I can prove what improved.”
+- LangSmith is the primary trace/debug layer.
+- Ragas and DeepEval give you the eval vocabulary and mechanics for retrieval and answer quality.
+
+### Phase 7: Cost Optimization
+
+**Required**
+
+- No large external reading pack by default.
+
+**What to use instead**
+
+- Your own traces, latency tables, token usage tables, and benchmark outputs from Phases 4-6.
+
+**Notes**
+
+- This phase should be measurement-driven, not blog-driven.
+- Only pull in extra reading if a concrete optimization experiment forces it.
+
+### Phase 8: Simulation Cognition and Agent Architecture
+
+**Required**
+
+- [Building Effective AI Agents](https://www.anthropic.com/engineering/building-effective-agents)
+- [LangChain structured output](https://docs.langchain.com/oss/python/langchain/structured-output)
+- [LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
+- [LangGraph checkpointer reference](https://reference.langchain.com/python/langgraph/checkpoints/)
+
+**Notes**
+
+- Come back to the Anthropic article here with more experience; it reads differently once you already have a working system.
+- Structured output and checkpointing are the practical base for private state, HITL, and explicit internal/public separation.
+
+### Phase 9: Protocols and Framework Comparisons
+
+**Required**
+
+- [Model Context Protocol overview](https://modelcontextprotocol.io/)
+- [Model Context Protocol specification](https://modelcontextprotocol.io/specification/2025-06-18/basic)
+- [Model Context Protocol SDK docs](https://modelcontextprotocol.io/docs/sdk)
+- [gRPC documentation](https://grpc.io/docs/)
+- [DSPy docs](https://dspy.ai/)
+- [LlamaIndex workflows](https://docs.llamaindex.ai/en/stable/workflows/)
+
+**Optional**
+
+- [A2A protocol docs](https://www.a2aprotocol.org/en/docs)
+
+**Notes**
+
+- Because you already feel comfortable with pure backend protocol concepts, keep this phase narrow and comparison-focused.
+- The point here is signaling and tradeoff literacy, not turning the repo into five competing transport stacks.
+
+### Phase 10: Self-Hosted Inference Backends
+
+**Required**
+
+- [vLLM quickstart](https://docs.vllm.ai/en/stable/getting_started/quickstart.html)
+- [SGLang documentation](https://docs.sglang.ai/)
+
+**Notes**
+
+- vLLM is the must-read runtime because it maps directly to the phase’s required implementation.
+- SGLang is the useful contrast because it exposes many of the runtime concepts that tend to come up in interviews: speculative decoding, quantization, LoRA serving, structured outputs, and observability.
+
+### Phase 11: Fine-Tuning and ML/NLP Depth
+
+**Required**
+
+- [Hugging Face Tokenizers docs](https://huggingface.co/docs/tokenizers/en/index)
+- [PEFT docs](https://huggingface.co/docs/peft/en/index)
+- [SentenceTransformers training overview](https://www.sbert.net/docs/training/overview.html)
+- [Cross-encoder training overview](https://www.sbert.net/docs/cross_encoder/training_overview.html)
+
+**Optional**
+
+- [TRL docs](https://huggingface.co/docs/trl/en/index)
+
+**Notes**
+
+- This is where the ML-depth reading really starts.
+- If you stay with LoRA/QLoRA and embedding/reranker tuning, PEFT plus SentenceTransformers is the right core.
+- Only add TRL if you truly start doing preference-style or policy-style training work.
+
+### Phase 12: Advanced Retrieval and Multimodal
+
+**Required**
+
+- [ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT](https://huggingface.co/papers/2004.12832)
+- [GraphRAG project page](https://www.microsoft.com/en-us/research/project/graphrag/)
+- [SentenceTransformers docs](https://www.sbert.net/index.html)
+
+**Notes**
+
+- Phase 12 is intentionally later because it is easy to sink time into retrieval sophistication before the baseline is stable.
+- ColBERT gives you the late-interaction grounding.
+- GraphRAG gives you the graph-oriented retrieval branch.
+
+### Phase 13: Open-Ended Society Simulation and Multi-Agent Expansion
+
+**Required**
+
+- Re-read the project’s own simulation doctrine and article notes first.
+
+**Useful external reference**
+
+- [Mesa documentation](https://mesa.readthedocs.io/en/latest/)
+- [Building Effective AI Agents](https://www.anthropic.com/engineering/building-effective-agents)
+
+**Notes**
+
+- By this phase, your most valuable reading should be your own design docs, traces, and eval results.
+- External reading helps with simulation patterns and orchestration tradeoffs, but the hard work here is system design and observation, not library API memorization.
+
+## Reading Cut Rules
+
+- If you are not currently implementing or benchmarking a comparison track, skip its paper.
+- If a phase is backend-heavy and AI-light, read the docs once and move on.
+- If a phase is retrieval-, safety-, eval-, inference-, or tuning-heavy, budget extra time for the reading before writing code.
+- When in doubt, choose one practical doc plus one grounding paper over five medium-quality tutorials.
