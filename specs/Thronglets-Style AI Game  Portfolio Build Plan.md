@@ -134,7 +134,7 @@ without burying business logic inside framework glue.
 
 The long-term product is not just a reactive chat system. It is a simulation.
 
-That means:
+**Long-term target (full product):**
 
 - world rules and the simulation engine are authoritative
 - the model proposes beliefs, intentions, interpretations, plans, and speech
@@ -144,6 +144,15 @@ That means:
 - players can influence the world, but the simulation should not depend on constant external control
 - the system should avoid hardcoded narrative beats and instead rely on rules, resources, incentives, and social dynamics
 - later phases may allow dimarts to revise their worldview and possibly form beliefs about hidden world constraints or the nature of the simulation itself
+
+**v1 subset (what actually ships after Phase 6):**
+
+- world rules and simulation engine are authoritative
+- private-state schema exists, but beliefs/intentions/plans are filled by heuristic stubs rather than model cognition
+- LLM-generated speech is player-driven; autonomous ticks mutate world/relationship state and emit events without generating dialogue
+- world engine applies consequences and state transitions
+- simulation runs independently of constant player input, via heuristic autonomous ticks
+- epistemic revision and hidden-constraint reasoning are explicitly deferred to Phase 8+
 
 ## Canonical Turn Lifecycle
 
@@ -160,6 +169,8 @@ Every player-driven or autonomous system turn should follow the same high-level 
 9. apply world consequences through the simulation engine
 10. persist public and private state deltas
 11. update derived memory index and emit tribe and world events
+
+In v1, steps 5 and 7 are heuristic stubs that read and write the Phase 3 private-state schema using rules rather than LLM cognition. LLM-driven belief revision, goal formation, and utterance-strategy selection land in Phase 8 and replace those stubs without changing the surrounding lifecycle.
 
 Every turn should be traceable with explicit states:
 
@@ -272,7 +283,6 @@ Get one dimart talking through a real backend.
 - runtime format: llama.cpp/GGUF defaults and measurement setup (quantization method comparisons deferred to Phase 10)
 - TTFT and throughput benchmarks
 - prompt composition variants
-- tokenizer deep-dive notebook
 
 **Article**
 
@@ -297,7 +307,9 @@ Expand from one dimart to the 5-dimart tribe and make the world feel alive even 
 - tribe/world event schemas and fan-out over the Phase 1 WebSocket transport
 - minimal resource, need, and relationship updates over time
 
-Autonomous ticks in this phase are rule- and heuristic-driven only; no LLM cognition, belief, or planning. Those land in Phase 3 (state) and Phase 8 (cognition).
+Autonomous ticks in this phase are rule- and heuristic-driven only; no LLM cognition, belief, or planning. They mutate world and relationship state and emit events, but they do not generate LLM dialogue — autonomous speech is gated until the Phase 8 cognition flow replaces the heuristic stubs. LLM-generated dialogue in v1 is therefore player-driven only. Belief/intention schemas land in Phase 3, cognition in Phase 8.
+
+Turn records in this phase live inside the event log; an explicit `TurnStore` adapter is introduced in Phase 3 when Postgres gains world and turn tables.
 
 **Comparison Tracks**
 
@@ -319,7 +331,7 @@ Introduce persistent game state, hidden state, and memory storage cleanly.
 **Build**
 
 - extend Postgres schema for authoritative world and turn data (tribe/event tables already exist from Phase 2)
-- Qdrant raw-memory persistence and write-path scaffolding (no retrieval yet — Phase 4)
+- raw memory records stored in Postgres (Qdrant is not introduced until Phase 4, alongside the retrieval pipeline that actually uses it)
 - relationship graph or equivalent social-state model
 - resource and world-state tables
 - event log with causal history
@@ -346,7 +358,7 @@ Make dimarts remember correctly and measurably.
 
 - embeddings
 - chunking strategies
-- initial Qdrant indexing pipeline (consuming the Phase 3 raw-memory store)
+- Qdrant introduced here: indexing pipeline consuming the Phase 3 Postgres raw-memory store
 - synchronous vs deferred indexing policy
 - dense retrieval
 - BM25 retrieval
@@ -458,6 +470,10 @@ Reduce runtime cost without damaging product quality.
 - routing heuristics
 - latency/cost benchmark reporting
 
+**Re-baseline note**
+
+- Phase 7 optimizes the v1 flat-orchestration flow. Once Phase 8 introduces LangGraph cognition and per-dimart graph flows, cache keys, routing heuristics, and batching assumptions must be re-measured against the new call pattern. Treat Phase 7 numbers as a v1 baseline, not a permanent target.
+
 **Article**
 
 - Article 7: “Reducing cost without wrecking quality”
@@ -561,14 +577,14 @@ Preserve the original ML depth work as later, explicit tracks instead of forcing
 - LoRA and QLoRA track
 - embedding fine-tuning track
 - experiment tracking for training runs
-- tokenizer analysis
+- tokenizer deep-dive notebook and tokenizer analysis
 - optimization-method notes and metrics
 
 **Comparison Tracks**
 
 - base model vs LoRA persona model
 - base embeddings vs fine-tuned embeddings
-- distilled small model vs larger baseline
+- off-the-shelf small model vs larger baseline
 
 **Article**
 
@@ -762,7 +778,7 @@ If the roadmap grows and that order disappears, the repo becomes a mess.
 
 **Why this first**
 
-- Use the Anthropic article as the grounding piece for why the repo should start with simple workflows, explicit boundaries, and only later earn more agentic complexity. LangGraph reading is deferred to Phase 8, where it is actually used.
+- Use the Anthropic article as the grounding piece for why the repo should start with simple workflows, explicit boundaries, and only later earn more agentic complexity. LangGraph reading is spread across Phases 1, 3, and 8, each time paired with the concrete capability it is being used for.
 
 ### Phase 1: Streaming Backend and Local Runtime
 
@@ -774,14 +790,10 @@ If the roadmap grows and that order disappears, the repo becomes a mess.
 - [LangGraph streaming](https://docs.langchain.com/oss/python/langgraph/streaming)
 - [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)
 
-**AI-grounding add-on**
-
-- [Hugging Face Tokenizers quicktour](https://huggingface.co/docs/tokenizers/en/index)
-
 **Notes**
 
 - The backend material here is intentionally short.
-- The tokenizer docs belong here because Phase 1 already includes local-model/runtime work and your tokenizer notebook comparison track.
+- Tokenizer reading is deferred to Phase 11, where the tokenizer deep-dive notebook and fine-tuning work actually live.
 
 ### Phase 2: Dimart Tribe, Simulation Clock, and Social Event Layer
 
