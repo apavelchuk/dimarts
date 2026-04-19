@@ -2,20 +2,20 @@
 
 ## How to Read This Plan
 
-This document now has three jobs:
+This document has three jobs:
 
-1. Define a sane **public MVP**.
-2. Preserve the **full long-term roadmap** so the project keeps expanding over time.
-3. Attach each phase to an **article milestone** so the public build story grows cleanly instead of turning into a pile of disconnected experiments.
+1. Define a sane public MVP.
+2. Preserve the full long-term roadmap so the project can keep expanding over time.
+3. Attach each phase to an article milestone so the build story stays coherent.
 
-This is not a “do only the MVP and stop” plan. It is a **full roadmap with an MVP cut through it**.
+This is not an MVP-only plan. It is a full roadmap with an MVP cut through it.
 
 ## Project Thesis
 
-Build a local-LLM virtual creature game that is strong enough to work as:
+Build a local-LLM virtual creature game that works as:
 
 - a real backend-heavy AI product
-- a showcase repo for AI engineering hiring loops
+- a showcase repo for AI engineering interviews
 - a vehicle for comparing multiple AI techniques on the same problem
 - a sequence of technical articles that build on each other naturally
 
@@ -39,6 +39,8 @@ The first public release must show:
 - persistent world and turn state
 - memory retrieval
 - reranking
+- safety basics
+- context controls
 - traces
 - evaluations
 - a benchmark story
@@ -56,11 +58,15 @@ The first public release must show:
 - PostgreSQL as source of truth
 - Qdrant as derived memory index
 - dense retrieval + BM25 hybrid retrieval
+- metadata filtering in retrieval
 - reranking enabled in the default path
 - LangChain in the default shipped path
 - optional thin LangGraph per-dimart flow
+- basic sanitization and moderation boundary
+- context pruning and summarization policy
 - LangSmith traces
-- early benchmark and evaluation suite
+- DeepEval / RAGAS-backed evaluation and benchmark suite
+- structured logs and `/metrics`
 
 ### v1 Non-Goals
 
@@ -71,6 +77,9 @@ The first public release must show:
 - embedding fine-tuning in the main shipped path
 - NeMo Guardrails as a hard requirement for the first release
 - MLflow or W&B as a hard requirement for the first release
+- MCP, gRPC, or A2A as required transports for v1
+- DSPy or LlamaIndex as required frameworks for v1
+- vLLM or SGLang as required runtimes for v1
 
 These are not removed from the roadmap. They are moved to later phases.
 
@@ -216,17 +225,11 @@ Set up the repository so the project can grow without becoming messy.
 - ports for `ModelBackend`, `RetrieverPipeline`, `Ranker`, `ContextStrategy`, `TurnStore`, `MemoryIndex`, `StreamTransport`, `TraceSink`, `SocietyCoordinator`
 - benchmark and evaluation directories from day one
 
-**Preserved Work**
-
-- architecture explanation
-- module boundaries
-- explicit tradeoff documentation
-
 **Article**
 
 - Article 0: “How I’m structuring this repo so I can compare AI techniques without creating a mess”
 
-### Phase 1: Streaming Backend, Local Model, and First Conversation Loop
+### Phase 1: Streaming Backend and Local Runtime
 
 **Goal**
 
@@ -242,21 +245,14 @@ Get one dimart talking through a real backend.
 - local model integration
 - GGUF as default runtime
 - LangChain prompt composition and streaming
-
-**Preserved Work**
-
-- async streaming architecture
-- API-first design
-- client-agnostic transport boundary
 - model loader abstraction
-- quantization benchmark notebook
-- tokenizer deep-dive notebook
 
 **Comparison Tracks**
 
 - GGUF vs GPTQ vs AWQ
 - TTFT and throughput benchmarks
 - prompt composition variants
+- tokenizer deep-dive notebook
 
 **Article**
 
@@ -275,11 +271,6 @@ Expand from one dimart to the 5-dimart tribe without introducing full civilizati
 - `SocietyCoordinator`
 - inter-dimart event model
 - WebSocket event stream for tribe activity
-
-**Preserved Work**
-
-- multi-creature communication as a core part of the concept
-- society and population visibility from the beginning
 
 **Comparison Tracks**
 
@@ -305,12 +296,6 @@ Introduce persistent game state and memory storage cleanly.
 - turn persistence
 - memory indexing after turn completion
 
-**Preserved Work**
-
-- async SQLAlchemy
-- Postgres as serious production-style state store
-- structured vs unstructured data split
-
 **Comparison Tracks**
 
 - synchronous vs deferred indexing
@@ -320,7 +305,7 @@ Introduce persistent game state and memory storage cleanly.
 
 - Article 3: “Postgres for truth, Qdrant for memory: drawing the line correctly”
 
-### Phase 4: Retrieval Foundation
+### Phase 4: Retrieval Baseline
 
 **Goal**
 
@@ -333,17 +318,9 @@ Make dimarts remember correctly and measurably.
 - dense retrieval
 - BM25 retrieval
 - fusion
+- metadata filtering
 - reranking in the default path
 - retrieval metrics
-
-**Preserved Work**
-
-- fixed-size chunking
-- sentence-boundary chunking
-- semantic chunking
-- hybrid search
-- cross-encoder reranking
-- debug visibility into ranking changes
 
 **Comparison Tracks**
 
@@ -351,56 +328,23 @@ Make dimarts remember correctly and measurably.
 - reranker on vs off
 - chunking strategy comparisons
 - embedding model comparisons
-- metadata filtering
 - HyDE
+
+**Deferred From This Phase**
+
 - late interaction
-- GraphRAG as an advanced retrieval branch
+- GraphRAG
+- multimodal retrieval
 
 **Article**
 
 - Article 4: “Hybrid retrieval and reranking for dimart memory”
 
-### Phase 5: Evaluation, Regression, and Observability
+### Phase 5: Safety and Context Baseline
 
 **Goal**
 
-Make improvements measurable and regressions visible.
-
-**Build**
-
-- LangSmith tracing
-- benchmark harness
-- evaluation datasets
-- retrieval metrics
-- pairwise comparison reports
-- response-quality regression suite
-- structured logs
-- `/metrics` endpoint
-
-**Preserved Work**
-
-- DeepEval and RAGAS integration
-- LLM-as-judge
-- pairwise comparisons
-- IR metrics like MRR, NDCG, Recall@K
-- run-level comparisons
-- trace screenshots and benchmark tables in README
-
-**Comparison Tracks**
-
-- baseline vs reranked pipeline
-- baseline vs fine-tuned retrieval later
-- prompt version A/B tests
-
-**Article**
-
-- Article 5: “How I evaluate and trace an AI system instead of just eyeballing it”
-
-### Phase 6: Safety and Hardening
-
-**Goal**
-
-Add the safety layer that interviewers expect to hear about.
+Add the minimum safety and context controls required for a credible public AI product.
 
 **Build**
 
@@ -410,100 +354,128 @@ Add the safety layer that interviewers expect to hear about.
 - sensitive-data handling
 - output filtering policy
 - sandboxing for any dimart actions
-
-**Preserved Work**
-
-- PII masking
-- jailbreak and injection handling
-- data leakage prevention
-- action sandboxing
-- guardrails as an explicit design concern
+- context pruning
+- summarization policy
+- prompt and memory token budgets
+- lost-in-the-middle mitigation
 
 **Comparison Tracks**
 
 - regex + heuristic sanitization
 - embedding-based injection detection
+- pruning strategies
+- summarization thresholds
 - NeMo Guardrails integration
 
 **Article**
 
-- Article 6: “Guardrails, sanitization, and action sandboxing in a local AI game”
+- Article 5: “Safety, pruning, and not letting the app go off the rails”
 
-### Phase 7: Context and Cost Optimization
+### Phase 6: Evaluation, Tracing, and Monitoring
 
 **Goal**
 
-Improve quality and control costs without changing the product surface.
+Make improvements measurable and regressions visible before the public release.
 
 **Build**
 
-- context pruning
-- summarization policy
-- prompt and memory token budgets
-- selective caching for deterministic artifacts
-- explicit latency budgets
-
-**Preserved Work**
-
-- hierarchical summarization
-- dynamic retrieval from history
-- lost-in-the-middle mitigation
-- semantic cache
-- model routing
-- request batching where it actually helps
+- LangSmith tracing
+- DeepEval integration
+- RAGAS integration
+- evaluation datasets
+- retrieval metrics
+- pairwise comparison reports
+- LLM-as-judge reports
+- response-quality regression suite
+- structured logs
+- `/metrics` endpoint
+- simple monitoring dashboards or SLO-style latency documentation
 
 **Comparison Tracks**
 
-- pruning strategies
-- summarization thresholds
-- cache hit quality impact
-- routing small vs large models by request type
+- baseline vs reranked pipeline
+- baseline vs fine-tuned retrieval later
+- prompt version A/B tests
 
 **Article**
 
-- Article 7: “Context pruning, summarization, and cost control without wrecking quality”
+- Article 6: “How I evaluate, trace, and monitor an AI system instead of just eyeballing it”
 
-### Phase 8: Agent Architecture Upgrades
+### Public MVP Release
+
+The first public release happens after **Phases 0-6**.
+
+### Phase 7: Cost Optimization
 
 **Goal**
 
-Expand from a thin flow to richer agentic patterns once the core system is stable.
+Reduce runtime cost without damaging product quality.
+
+**Build**
+
+- semantic cache
+- model routing
+- request batching where it actually helps
+- cache quality analysis
+- routing heuristics
+- latency/cost benchmark reporting
+
+**Article**
+
+- Article 7: “Reducing cost without wrecking quality”
+
+### Phase 8: Agent Architecture
+
+**Goal**
+
+Expand from a thin orchestration flow to richer agentic patterns once the core system is stable.
 
 **Build**
 
 - thin per-dimart LangGraph flow if not already present
+- reflection
 - explicit checkpointing
 - structured output boundaries
 - memory-aware planning hooks
-
-**Preserved Work**
-
-- reflection loops
-- checkpointers
-- agentic memory
-- planning and execution
-- structured output
-- architecture tradeoffs
 - reasoning traces
+- HITL checkpoints
 
 **Comparison Tracks**
 
 - plain orchestrator vs LangGraph
 - reflection on vs off
-- HITL review checkpoints
+- HITL on vs off
 - tool-calling flows
-
-**Protocol and Integration Extensions**
-
-- MCP integration surface
-- gRPC exploration
-- A2A notes and positioning
 
 **Article**
 
-- Article 8: “Where LangGraph actually helps, and where plain orchestration is better”
+- Article 8: “Where LangGraph and agent patterns actually help”
 
-### Phase 9: Self-Hosted Inference Backends
+### Phase 9: Protocols and Framework Comparisons
+
+**Goal**
+
+Cover breadth topics that come up in interviews without rebuilding the whole project from scratch for each one.
+
+**Build**
+
+- MCP experiment or integration surface
+- gRPC experiment track
+- A2A positioning notes with one concrete comparison
+- DSPy experiment track
+- LlamaIndex experiment track
+
+**Comparison Tracks**
+
+- WS/SSE vs protocol-heavier approaches
+- LangChain vs LlamaIndex on a focused retrieval task
+- plain orchestration / LangGraph vs DSPy-style optimization on a narrow workflow
+
+**Article**
+
+- Article 9: “When WS/SSE is enough, and when protocols and framework alternatives matter”
+
+### Phase 10: Self-Hosted Inference Backends
 
 **Goal**
 
@@ -511,18 +483,17 @@ Cover the model-serving depth that comes up in interviews without turning the wh
 
 **Build**
 
-- inference experiment track
+- vLLM integration
 - backend abstraction for alternate runtimes
-
-**Preserved Work**
-
-- vLLM exploration
-- SGLang exploration
-- paged attention notes
 - static and dynamic batching
-- speculative decoding
-- inference balancing
+- speculative decoding experiment
 - quantization comparisons
+
+**Optional Extensions**
+
+- SGLang exploration
+- inference balancing
+- deeper paged-attention notes
 
 **Comparison Tracks**
 
@@ -532,9 +503,9 @@ Cover the model-serving depth that comes up in interviews without turning the wh
 
 **Article**
 
-- Article 9: “How much inference-backend depth a backend-focused AI engineer actually needs”
+- Article 10: “How much inference-backend depth a backend-focused AI engineer actually needs”
 
-### Phase 10: Fine-Tuning and ML/NLP Depth
+### Phase 11: Fine-Tuning and ML/NLP Depth
 
 **Goal**
 
@@ -546,15 +517,8 @@ Preserve the original ML depth work as later, explicit tracks instead of forcing
 - LoRA and QLoRA track
 - embedding fine-tuning track
 - experiment tracking for training runs
-
-**Preserved Work**
-
-- model architectures and tradeoffs
-- tokenizers and tokenizer analysis
-- optimization methods and model metrics
-- fine-tuning
-- embedding fine-tuning
-- distillation as a later experiment
+- tokenizer analysis
+- optimization-method notes and metrics
 
 **Comparison Tracks**
 
@@ -564,37 +528,33 @@ Preserve the original ML depth work as later, explicit tracks instead of forcing
 
 **Article**
 
-- Article 10: “Fine-tuning, embeddings, and what should stay out of the MVP”
+- Article 11: “Fine-tuning, embeddings, tokenizers, and what should stay out of the MVP”
 
-### Phase 11: Multimodal and Advanced Retrieval
+### Phase 12: Advanced Retrieval and Multimodal
 
 **Goal**
 
-Preserve the multimodal and retrieval-breadth work from the original roadmap.
+Preserve the retrieval-breadth and multimodal work from the original roadmap without bloating the baseline system.
 
 **Build**
 
+- late-interaction retrieval experiment
+- GraphRAG experiment branch
 - multimodal experiment branch
 - image input to dimarts
 - visual memory indexing
-
-**Preserved Work**
-
-- multimodal search
-- multimodal indexation
-- CLIP-style unified spaces
-- VLM integration
 
 **Comparison Tracks**
 
 - text-only vs multimodal retrieval
 - caption-based indexing vs unified embedding approaches
+- baseline hybrid retrieval vs advanced retrieval branches
 
 **Article**
 
-- Article 11: “Adding multimodal memory without breaking the retrieval story”
+- Article 12: “Advanced retrieval beyond the baseline hybrid pipeline”
 
-### Phase 12: Richer Society and Multi-Agent Expansion
+### Phase 13: Richer Society and Multi-Agent Expansion
 
 **Goal**
 
@@ -606,12 +566,7 @@ Extend the 5-dimart tribe into a deeper social system after the fundamentals are
 - broader inter-dimart orchestration
 - optional supervisor graphs
 - more autonomous social loops
-
-**Preserved Work**
-
-- multi-agent orchestration
-- richer planning/execution
-- larger-scale society simulation
+- larger society simulation
 
 **Comparison Tracks**
 
@@ -620,7 +575,7 @@ Extend the 5-dimart tribe into a deeper social system after the fundamentals are
 
 **Article**
 
-- Article 12: “Scaling the tribe into a real society”
+- Article 13: “Scaling the tribe into a real society”
 
 ## Test Strategy Across All Phases
 
@@ -685,37 +640,37 @@ Always document:
 This roadmap is designed to eventually cover the interview topics below.
 
 1. **ML/NLP basics**
-   - primary phases: 1, 9, 10
+   - primary phases: 1, 10, 11
    - terms: embeddings, tokenizers, fine-tuning, distillation, optimization, metrics
 2. **Retrieval**
-   - primary phases: 4, 11
+   - primary phases: 4, 12
    - terms: chunking, hybrid search, metadata filtering, HyDE, GraphRAG, reranking, cross-encoding, late interaction, metrics
 3. **Protocols**
-   - primary phases: 1, 2, 8
+   - primary phases: 1, 2, 9
    - terms: WS, SSE, gRPC, MCP, A2A
 4. **Agent architecture**
-   - primary phases: 2, 8, 12
+   - primary phases: 2, 8, 13
    - terms: HITL, reflection, checkpointing, agentic memory, multi-agent orchestration, planning and execution, structured output
 5. **Safety**
-   - primary phases: 6
+   - primary phases: 5
    - terms: sanitizing, guardrails, moderation, jailbreaks, injections, data leakage, sandboxing
 6. **Cost reduction**
-   - primary phases: 7, 9
+   - primary phases: 7, 10
    - terms: semantic cache, model routing, batching
 7. **Context optimization**
-   - primary phases: 7
+   - primary phases: 5, 7
    - terms: pruning, lost in the middle, summarization
 8. **Self-hosted backends**
-   - primary phases: 1, 9
+   - primary phases: 1, 10
    - terms: vLLM, SGLang, paged attention, speculative decoding, batching, quantization, inference balancing
 9. **Frameworks**
-   - primary phases: 1, 4, 8
+   - primary phases: 1, 8, 9
    - terms: LangChain, LangGraph, DSPy, LlamaIndex
 10. **Testing agent and RAG systems**
-   - primary phases: 5
+   - primary phases: 6
    - terms: DeepEval, LLM-as-judge, pairwise comparison, RAGAS, CI-style regression
 11. **Observability**
-   - primary phases: 5, 9
+   - primary phases: 6, 10
    - terms: tracing, monitoring, eval visibility, production debugging
 
 ## Final Rule
