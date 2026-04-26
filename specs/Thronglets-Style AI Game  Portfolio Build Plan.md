@@ -198,6 +198,21 @@ The project starts with a constrained tribe. These constraints apply to v1 only:
 - no procedural population explosion in v1
 - player intervention is possible, but the tribe should also evolve through autonomous ticks
 
+### MVP Experience Rule
+
+The MVP must visibly prove that this is a simulation-backed product rather than a standard user-to-LLM chat shell.
+
+That means the first playable path should show at least one meaningful tribe or world change that happens without the player directly prompting that exact action.
+
+Examples:
+
+- two dimarts change relationship state because of an off-turn event
+- a resource shortage creates visible tribe tension
+- one dimart helps or blocks another and the player sees the consequence
+- a world or tribe event interrupts or redirects the current interaction
+
+If the system only demonstrates `player message -> LLM reply`, the MVP is underspecified even if hidden simulation state already exists.
+
 Phase 13 relaxes these constraints.
 
 Implementation recommendation:
@@ -264,7 +279,7 @@ Set up the repository so the project can grow without becoming messy.
 
 **Goal**
 
-Get one dimart talking through a real backend.
+Get one dimart talking through a real backend without letting the project collapse into a generic chat-wrapper architecture.
 
 **Build**
 
@@ -306,6 +321,14 @@ Expand from one dimart to the 5-dimart tribe and make the world feel alive even 
 - inter-dimart event model
 - tribe/world event schemas and fan-out over the Phase 1 WebSocket transport
 - minimal resource, need, and relationship updates over time
+
+**MVP acceptance signals**
+
+- within the first session, the player sees at least one off-turn tribe or world event
+- at least one visible event changes public world state, relationship state, or resource state
+- at least one dimart-to-dimart interaction is observable without requiring a direct player prompt
+- the player can understand why an event happened from visible state, event text, or trace data
+- the product demo remains understandable as `simulation with chat` rather than `chat with optional hidden bookkeeping`
 
 Autonomous ticks in this phase are rule- and heuristic-driven only; no LLM cognition, belief, or planning. They mutate world and relationship state and emit events, but they do not generate LLM dialogue — autonomous speech is gated until the Phase 8 cognition flow replaces the heuristic stubs. LLM-generated dialogue in v1 is therefore player-driven only. Belief/intention schemas land in Phase 3, cognition in Phase 8.
 
