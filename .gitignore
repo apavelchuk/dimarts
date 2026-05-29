@@ -1,0 +1,12 @@
+.env
+.env.*
+
+.history/
+specs/
+coverage/
+
+*.pyc
+.pytest_cache
+*.log
+*.egg-info
+agents.md
