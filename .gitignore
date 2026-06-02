@@ -1,6 +1,10 @@
+.vscode/
+.DS_store
+
 .env
 .env.*
 
+.cache/
 .history/
 specs/
 coverage/
@@ -10,3 +14,7 @@ coverage/
 *.log
 *.egg-info
 agents.md
+
+# uv
+.venv
+__pypackages__/
